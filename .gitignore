@@ -1,5 +1,11 @@
 *
 
+!LICENSE
+!README
+!*/
+!*.*
+
+a.out
 *.o
 *.so
 *.hi
@@ -9,7 +15,4 @@
 *.swp
 *~
 
-!LICENSE
-!README
-!*/
-!*.*
+!input
