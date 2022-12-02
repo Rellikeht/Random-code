@@ -1,0 +1,15 @@
+*
+
+*.o
+*.so
+*.hi
+*.cmi
+*.cmx
+*.pyc
+*.swp
+*~
+
+!LICENSE
+!README
+!*/
+!*.*
