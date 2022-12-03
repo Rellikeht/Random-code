@@ -1,7 +1,4 @@
-open String;;
-
 let sum = ref 0;;
-
 let item_code c =
     let code = Char.code c in
     if code >= 97 then code - 96
