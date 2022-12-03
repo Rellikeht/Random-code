@@ -5,9 +5,9 @@ let line_int () =
 
 let rec cals cur_cals = 
     let nv = (line_int ()) in
-    if nv > -1
-    then (cals (cur_cals+nv))
-    else cur_cals
+        if nv > -1
+        then (cals (cur_cals+nv))
+        else cur_cals
 ;;
 
 let up_cals (c1, c2, c3) cn =
@@ -21,9 +21,9 @@ let up_cals (c1, c2, c3) cn =
 
 let rec max_cals cur_max = 
     let cv = cals 0 in
-    if cv > 0
-    then max_cals (up_cals cur_max cv)
-    else cur_max
+        if cv > 0
+        then max_cals (up_cals cur_max cv)
+        else cur_max
 ;;
 
 let sum_cals (c1, c2, c3) = c1+c2+c3;;
