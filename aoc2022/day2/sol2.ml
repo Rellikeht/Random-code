@@ -12,11 +12,8 @@ let result op = match op with
 ;;
 
 let rec count_result cur_count =
-    try
-        count_result (cur_count + result (read_line ()))
-    with
-        End_of_file -> cur_count
+    try count_result (cur_count + result (read_line ()))
+    with End_of_file -> cur_count
 ;;
 
-print_string (string_of_int (count_result 0));
-print_string "\n"
+print_string ((string_of_int (count_result 0))^"\n");
