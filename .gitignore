@@ -4,6 +4,7 @@
 !README
 !*/
 !*.*
+!Makefile
 
 a.out
 *.o

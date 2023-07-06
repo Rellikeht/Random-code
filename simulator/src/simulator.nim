@@ -582,7 +582,7 @@ proc execute*(machine: var Machine, stopOnInstruction, printRegisterSteps,
         echo ""
 
     if printMemorySteps:
-      #TODO B print memory steps
+      discard #TODO B print memory steps
 
     if stopOnInstruction:
       discard readline(stdin)
@@ -680,6 +680,6 @@ when isMainModule:
     printRegisters(machine)
 
   if doPrintMemory:
-    #TODO A print fucking memory
+    discard #TODO A print fucking memory
 
   close file
