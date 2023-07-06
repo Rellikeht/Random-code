@@ -1,0 +1,3 @@
+[submodule "simulator/16bit_cpu"]
+	path = simulator/16bit_cpu
+	url = https://github.com/sarvl/16bit_cpu
