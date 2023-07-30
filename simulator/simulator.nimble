@@ -65,7 +65,7 @@ task compAsm, "Compile original assembler":
 task compSim, "Compile original simulator":
   prepareTask()
   exec cppCmd(codeDir / "simulator" / "simulator.cpp", binDir / "sim", origFlags)
-  echo "Compiled simulator assembler"
+  echo "Compiled original simulator"
 
 task makePrograms, "Assembly programs":
   compAsmTask()
