@@ -585,8 +585,9 @@ proc executeOne*(machine: var Machine, printInstruction: bool): MachineInfo =
 proc executeOne*(machine: var Machine): MachineInfo =
   return executeOne(machine, false)
 
-proc execute*(machine: var Machine, stopOnInstruction, printRegisterSteps,
-  printMemorySteps, printInstruction: bool): MachineInfo =
+proc execute*(machine: var Machine, stopOnInstruction = false,
+  printRegisterSteps = false, printMemorySteps = false,
+  printInstruction = false, format = hexadecimal): MachineInfo =
   var info = MachineInfo(status: ready)
 
   while true:
@@ -612,41 +613,12 @@ proc execute*(machine: var Machine, stopOnInstruction, printRegisterSteps,
 
   return info
 
-proc execute*(machine: var Machine, stopOnInstruction,
-  printSteps, printInstruction: bool): MachineInfo {.inline.} =
-  return execute(machine, stopOnInstruction,
-    printSteps, printSteps, printInstruction)
-
-proc execute*(machine: var Machine,
-  stopOnInstruction, printAll: bool): MachineInfo {.inline.} =
-  return execute(machine, stopOnInstruction, printAll, printAll)
-
-proc execute*(machine: var Machine, stopOnInstruction: bool): MachineInfo {.inline.} =
-  return execute(machine, stopOnInstruction, false)
-
-proc execute*(machine: var Machine): MachineInfo {.inline.} =
-  return execute(machine, false)
-
-proc execute*(code: string | File, stopOnInstruction, printRegisterSteps,
-  printMemorySteps, printInstruction: bool): MachineInfo {.inline.} =
+proc execute*(code: string | File, stopOnInstruction = false,
+  printRegisterSteps = false, printMemorySteps = false,
+  printInstruction = false, format = hexadecimal): MachineInfo =
   var machine = initMachine(code)
   return execute(machine, stopOnInstruction,
     printRegisters, printMemorySteps, printInstruction)
-
-proc execute*(code: string | File, stopOnInstruction, printSteps,
-  printInstruction: bool): MachineInfo {.inline.} =
-  return execute(code, stopOnInstruction, printSteps,
-    printSteps, printInstruction)
-
-proc execute*(code: string | File, stopOnInstruction,
-  printAll: bool): MachineInfo {.inline.} =
-  return execute(code, stopOnInstruction, printAll, printAll, printAll)
-
-proc execute*(code: string | File, stopOnInstruction: bool): MachineInfo {.inline.} =
-  return execute(code, stopOnInstruction, false)
-
-proc execute*(code: string | File): MachineInfo {.inline.} =
-  return execute(code, false)
 
 
 # MAIN
@@ -655,52 +627,71 @@ proc execute*(code: string | File): MachineInfo {.inline.} =
 when isMainModule:
   var
     file = stdin
+    printMsgs = true
 
     stopOnInstruction = false
     printInstruction = false
-    doPrintRegisters = false
+    doPrintRegisters = true
     doPrintMemory = false
     printRegisterSteps = false
     printMemorySteps = false
+    format = hexadecimal
 
   # TODO B parseopt
   for c in commandLineParams():
     case c:
     of "-r": printRegisterSteps = true
     of "-m": printMemorySteps = true
-    of "-d": doPrintRegisters = true
+
+    of "-d": doPrintRegisters = false
     of "-v": doPrintMemory = true
+
     of "-i": printInstruction = true
     of "-s": stopOnInstruction = true
+
+    of "-t":
+      printMsgs = false
+      stopOnInstruction = false
+      printInstruction = false
+      doPrintRegisters = true
+      doPrintMemory = false
+      printRegisterSteps = false
+      printMemorySteps = false
+      format = decimal
+
     else:
       if fileExists(c):
         file = open(c)
       else:
-        echo "Undefined option or unexistent file: " & c
+        if printMsgs:
+          echo "Undefined option or unexistent file: " & c
+          echo "Using stdin"
 
-  if stopOnInstruction and file == stdin:
-    echo "Warning: can't wait for user input when reading from stdin"
-    echo ""
+  if file == stdin:
+    if printMsgs:
+      echo "Warning: can't get user input when reading from stdin"
+      echo ""
     stopOnInstruction = false
 
   var machine = initMachine(file)
   let info = execute(machine, stopOnInstruction,
-    printRegisterSteps, printMemorySteps, printInstruction)
+    printRegisterSteps, printMemorySteps, printInstruction, format)
 
-  if doPrintRegisters or doPrintMemory:
+  if (doPrintRegisters or doPrintMemory) and printMsgs:
     echo dumpPause
     echo ""
 
-  case info.status:
-    of halted: echo "Machine halted on HLT"
-    of exceptional:
-      echo "Machine halted exceptionally, info:"
-      echo info.info
-    of ready: echo "Impossible !!"
+  if printMsgs:
+    case info.status:
+      of halted: echo "Machine halted on HLT"
+      of exceptional:
+        echo "Machine halted exceptionally, info:"
+        echo info.info
+      of ready: echo "Impossible !!"
 
   if doPrintRegisters:
-    echo ""
-    printRegisters(machine)
+    if printMsgs: echo ""
+    printRegisters(machine, format)
 
   if doPrintMemory:
     discard #TODO A print fucking memory
