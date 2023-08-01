@@ -356,13 +356,14 @@ proc read*(instructions: string | File): Instructions {.inline.} =
     add(read, readOne(i))
   return read
 
-proc initMachine*(instructions: Instructions): Machine =
+proc initMachine*(
+  machine: var Machine, instructions: Instructions): Machine =
   var address = MemAddr(0)
-  var machine: Machine
 
   # TODO D cpu flags
   # Because i can simulate MUL
   machine.eregisters[CF] = mulInstrFlag
+
   # One must be set by default
   machine.eregisters[FL] = equal
 
@@ -370,12 +371,34 @@ proc initMachine*(instructions: Instructions): Machine =
     setMem(machine, address, i)
     address += 2
 
+proc initMachine*(instructions: Instructions): Machine =
+  var address = MemAddr(0)
+  var machine: Machine
+  initMachine(machine, instructions)
   return machine
+
+proc initMachine*(
+  machine: var Machine, code: string | File): Machine {.inline.} =
+  return initMachine(machine, read(code))
 
 proc initMachine*(code: string | File): Machine {.inline.} =
   return initMachine(read(code))
 
-# TODO B reseting machine
+proc resetMachine*(machine: var Machine, startAddr, endAddr: MemAddr) =
+  for i in startAddr..endAddr: machine.memory[i] = MemVal(0)
+  for r in machine.eregisters: machine.eregisters[r] = RegisterValue(0)
+  for r in machine.iregisters: machine.iregisters[r] = RegisterValue(0)
+
+proc resetMachine*(machine: var Machine, startAddr: MemAddr) =
+  resetMachine(machine, startAddr, MemAddr(len(machine.memory)-1))
+
+proc resetMachine*(machine: var Machine) =
+  resetMachine(machine, MemAddr(0))
+
+# TODO B test
+proc resetMachine*(machine: var Machine, instructions: Instructions) =
+  initMachine(machine, instructions)
+  zeroMachine(machine, MemAddr(len(instructions)))
 
 
 # EXECUTION
