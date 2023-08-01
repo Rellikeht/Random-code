@@ -20,7 +20,7 @@ type
   u8 = uint8
   u16 = uint16
 
-  MemVal = u8
+  MemVal* = u8
   MemAddr* = u16
   RegisterValue* = u16
   Imm16* = u16
@@ -334,9 +334,6 @@ proc printMemory*(
 proc printMemory*(machine: Machine, first, last: MemAddr) {.inline.} =
   printMemory(machine, first, last, defaultBFormat, true)
 
-# All these overloads don't look good, but default parameters...
-# Default parameters are at least debatable
-
 
 # READING
 
@@ -357,7 +354,7 @@ proc read*(instructions: string | File): Instructions {.inline.} =
   return read
 
 proc initMachine*(
-  machine: var Machine, instructions: Instructions): Machine =
+  machine: var Machine, instructions: Instructions) =
   var address = MemAddr(0)
 
   # TODO D cpu flags
@@ -372,13 +369,12 @@ proc initMachine*(
     address += 2
 
 proc initMachine*(instructions: Instructions): Machine =
-  var address = MemAddr(0)
   var machine: Machine
   initMachine(machine, instructions)
   return machine
 
 proc initMachine*(
-  machine: var Machine, code: string | File): Machine {.inline.} =
+  machine: var Machine, code: string | File) {.inline.} =
   return initMachine(machine, read(code))
 
 proc initMachine*(code: string | File): Machine {.inline.} =
@@ -398,7 +394,7 @@ proc resetMachine*(machine: var Machine) =
 # TODO B test
 proc resetMachine*(machine: var Machine, instructions: Instructions) =
   initMachine(machine, instructions)
-  zeroMachine(machine, MemAddr(len(instructions)))
+  resetMachine(machine, MemAddr(len(instructions)))
 
 
 # EXECUTION
@@ -424,7 +420,6 @@ proc executeOne*(machine: var Machine, printInstruction = false, format = hexade
   let
     # TODO D may be good to split instruction using parts funtion
     instruction = fetch(machine.memory, machine.eregisters[IP]-1)
-    ip = machine.eregisters[IP]
     ui = machine.eregisters[UI]
 
     # TODO D Maybe use u8 for opcodes
