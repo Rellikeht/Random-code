@@ -147,8 +147,7 @@ const
 
   mulInstrFlag = RegisterValue(1)
   imm4Mask = ones(RegisterValue(4))
-  msb = u16(1) shl u16(2*sizeof(u16)-1)
-
+  msb = u16(1) shl u16(8*sizeof(u16)-1)
 
 # HELPERS
 
@@ -394,7 +393,7 @@ template getRegister(option, register: untyped, msg: string) =
 #    "Bad register in " & $ Opcode(opcode) & " instruction")
 
 # return value tells if machine stopped
-proc executeOne*(machine: var Machine, printInstruction: bool): MachineInfo =
+proc executeOne*(machine: var Machine, printInstruction = false, format = hexadecimal): MachineInfo =
   # TODO C may be better to keep machine state inside of object
   # And check it here
 
@@ -415,15 +414,15 @@ proc executeOne*(machine: var Machine, printInstruction: bool): MachineInfo =
     imm16 = (machine.eregisters[UI] shl 8) or u8(instruction)
 
   if printInstruction:
-    echo dumpValue(instruction, binary, true)
+    # echo dumpValue(instruction, format, true)
     if iopcode == 0:
       echo "Opcode: " & $Opcode(opcode) & " " &
-        $dumpValue(arg1, binary, true) & " " &
-        $dumpValue(arg2, binary, true)
+        $dumpValue(arg1, format, true) & " " &
+        $dumpValue(arg2, format, true)
     else:
       echo "Opcode: " & $Opcode(opcode) & " " &
-        $dumpValue(arg1, binary, true) & " " &
-        $dumpValue(imm16, binary, true)
+        $dumpValue(arg1, format, true) & " " &
+        $dumpValue(imm16, format, true)
 
   block execution:
     case opcode:
@@ -564,11 +563,12 @@ proc executeOne*(machine: var Machine): MachineInfo =
 
 proc execute*(machine: var Machine, stopOnInstruction = false,
   printRegisterSteps = false, printMemorySteps = false,
-  printInstruction = false, format = hexadecimal): MachineInfo =
+  printInstruction = false, instructionFormat = hexadecimal,
+  format = hexadecimal): MachineInfo =
   var info = MachineInfo(status: ready)
 
   while true:
-    info = executeOne(machine, printInstruction)
+    info = executeOne(machine, printInstruction, instructionFormat)
 
     if info.status != ready:
       return info
@@ -578,7 +578,7 @@ proc execute*(machine: var Machine, stopOnInstruction = false,
       echo ""
 
     if printRegisterSteps:
-      printRegisters(machine)
+      printRegisters(machine, format)
       if printMemorySteps:
         echo ""
 
@@ -612,11 +612,14 @@ when isMainModule:
     doPrintMemory = false
     printRegisterSteps = false
     printMemorySteps = false
-    format = hexadecimal
+    format = decimal
 
   # TODO B parseopt
   for c in commandLineParams():
     case c:
+    of "-h": format = hexadecimal
+    of "-b": format = binary
+
     of "-r": printRegisterSteps = true
     of "-m": printMemorySteps = true
 
@@ -652,7 +655,7 @@ when isMainModule:
 
   var machine = initMachine(file)
   let info = execute(machine, stopOnInstruction,
-    printRegisterSteps, printMemorySteps, printInstruction, format)
+    printRegisterSteps, printMemorySteps, printInstruction, format, format)
 
   if (doPrintRegisters or doPrintMemory) and printMsgs:
     echo dumpPause
