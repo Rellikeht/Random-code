@@ -11,7 +11,7 @@ bin           = @["simulator"]
 
 # Dependencies
 
-requires "nim >= 1.6.10"
+requires "nim >= 2.0.0"
 
 # Tasks
 

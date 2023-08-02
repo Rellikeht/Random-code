@@ -8,6 +8,8 @@ import strutils
 import os
 #import parseopt
 
+{.push raises: [].}
+
 # Because why not
 template TODO(_: varargs[untyped]) {.used.} = discard
 
@@ -217,13 +219,14 @@ func getMem*(machine: Machine, address: MemAddr): MemVal {.inline.} =
 # Hopefully it will just work
 # Fucking endianness
 func getMem(memory: Memory,
-  address: MemAddr, container: var u16) {.inline.} =
+  address: MemAddr, container: out u16) {.inline.} =
   container = getMem(memory, address)
   container = container shl 8
   container += getMem(memory, address+1)
 
 func getMem*(machine: Machine,
-  address: MemAddr, container: var u16) {.inline.} =
+  address: MemAddr, container: out u16) {.inline.} =
+  container = u16(0)
   getMem(machine.memory, address, container)
 
 func setMem*(machine: var Machine, address: MemAddr, value: MemVal) {.inline.} =
@@ -237,7 +240,7 @@ func setMem*(machine: var Machine, address: MemAddr, value: u16) {.inline.} =
 
 # This separately becuase why not
 func fetch(memory: Memory, ip: RegisterValue): Instruction =
-  var instruction: Instruction
+  var instruction = Instruction(0)
   getMem(memory, ip shl 1, instruction)
   return instruction
 
@@ -342,13 +345,14 @@ proc printMemory*(machine: Machine, first, last: MemAddr) {.inline.} =
 # Don't know if this could be simpler, fucking endianness
 # Also don't know how correct this is
 func readOne(instruction: string): Instruction {.inline.} =
-  var read: Instruction
+  var read = Instruction(0)
   discard parseHex(instruction, read)
   let (highByte, lowByte) = parts(read)
   return u16(highByte) shl 8 + u16(lowByte)
 
-proc read*(instructions: string | File): Instructions {.inline.} =
-  var read: Instructions
+proc read*(instructions: string | File): Instructions
+  {.inline, raises: [IOError].} =
+  var read = default(Instructions)
   for i in lines(instructions):
     add(read, readOne(i))
   return read
@@ -369,15 +373,15 @@ proc initMachine*(
     address += 2
 
 proc initMachine*(instructions: Instructions): Machine =
-  var machine: Machine
+  var machine = Machine()
   initMachine(machine, instructions)
   return machine
 
 proc initMachine*(
-  machine: var Machine, code: string | File) {.inline.} =
+  machine: out Machine, code: string | File) {.inline.} =
   return initMachine(machine, read(code))
 
-proc initMachine*(code: string | File): Machine {.inline.} =
+proc initMachine*(code: string | File): Machine {.inline, raises: [IOError].} =
   return initMachine(read(code))
 
 proc resetMachine*(machine: var Machine, startAddr, endAddr: MemAddr) =
@@ -582,7 +586,7 @@ proc executeOne*(machine: var Machine): MachineInfo =
 proc execute*(machine: var Machine, stopOnInstruction = false,
   printRegisterSteps = false, printMemorySteps = false,
   printInstruction = false, instructionFormat = hexadecimal,
-  format = hexadecimal): MachineInfo =
+  format = hexadecimal): MachineInfo {.raises: [IOError].} =
   var info = MachineInfo(status: ready)
 
   while true:
