@@ -14,6 +14,7 @@ a.out
 *.cmx
 *.pyc
 *.swp
+*.bin
 *~
 
 simulator/orig

@@ -1,5 +1,3 @@
-# TODO A test if simulator and original simulator gives the same result on
-# all programs
 import os, osproc, strutils, parseutils
 
 var
