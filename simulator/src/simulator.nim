@@ -532,7 +532,7 @@ proc executeOne*(machine: var Machine, printInstruction = false, format = hexade
     of MOV:
       machine.iregisters[reg1] = value
     of RDM:
-      machine.iregisters[reg1] = getMem(machine.memory, value)
+      getMem(machine.memory, value, machine.iregisters[reg1])
     of WRM:
       setMem(machine, value, machine.iregisters[reg1])
 
