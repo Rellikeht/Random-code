@@ -22,6 +22,8 @@ matchParens s = helper 0 parens == 0
 progChar :: Char -> Bool
 progChar = flip elem [ '+', '-', '.', ',', '[', ']', '<', '>' ]
 
+-- TODO comments
+
 parse :: String -> Either String B.ByteString
 parse s
     | matchParens s = Right $ B.pack $ filter progChar s
@@ -29,7 +31,9 @@ parse s
 
 execute :: Either String B.ByteString -> String -> IO ()
 execute (Left err) _ = hPutStrLn stderr $ err ++ "\n"
-execute (Right program) input = exec program input 0 [] (repeat 0) []
+execute (Right program) input = exec program input 0 [] start []
+  where
+    start = replicate 3000 0
 
 toW8 :: Char -> W.Word8
 toW8 = toEnum . fromEnum
@@ -44,7 +48,7 @@ exec program input position stack front back
     | curinst == '.' = (putChar . fromW8 . head) front >> continue
     | otherwise = continue
   where
-    continue = exec program input newpos newstack newfront newback
+    continue = exec program newinput newpos newstack newfront newback
 
     curinst = B.index program position
 
@@ -65,7 +69,23 @@ exec program input position stack front back
     newfront = case curinst of
         '+' -> (head front + 1) : tail front
         '-' -> (head front - 1) : tail front
+        -- ??
         ',' -> toW8 (head input) : tail front
+        --
+
+        -- EOF -> 0 
+        -- ',' -> (if null input then 0 else toW8 (head input)) : tail front
+        --
+
+        -- EOF -> -1
+        -- ',' -> (if null input then 255 else toW8 (head input)) : tail front
+        --
+
+        -- EOF -> same
+        -- ',' -> (if null input then (head front) else toW8 (head input))
+        --     : tail front
+        --
+
         '>' -> tail front
         '<' -> head back : front
         _ -> front
